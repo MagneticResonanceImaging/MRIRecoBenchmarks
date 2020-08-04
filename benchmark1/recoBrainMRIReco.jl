@@ -1,4 +1,4 @@
-using PyPlot, HDF5, MRIReco, LinearAlgebra
+using HDF5, MRIReco, LinearAlgebra, DelimitedFiles, BenchmarkTools
 FFTW.set_num_threads(1);BLAS.set_num_threads(1)
 
 filename = "./data/rawdata_brain_radial_96proj_12ch.h5"
@@ -35,7 +35,7 @@ params[:iterations] = 100
 params[:solver] = "cgnr"
 params[:senseMaps] = reshape(sensitivity, N, N, 1, Nc)
 
-@time img_ref = reconstruction(acqData, params).data
+# @time img_ref = reconstruction(acqData, params).data
 
 ##############################
 # undersampled reconstructions
@@ -51,5 +51,27 @@ for i = 1:length(rf)
   # undersample profiles
   acqDataSub = convertUndersampledData(sample_kspace(acqData, Float64.(rf[i]), "regular"))
   # SENSE reconstruction while monitoring error
+  # run twice to take factor out precompilation effects
+  img_cg[i] = reconstruction(acqDataSub, params).data
   times[i] = @elapsed img_cg[i] = reconstruction(acqDataSub, params).data
 end
+
+##############
+# write output
+##############
+f_times = "./reco/recoTimes_mrireco.csv"
+f_img  = "./reco/imgCG_mrireco.h5"
+open(f_times,"a") do file
+  writedlm(file, transpose(times))
+end
+
+if !isfile(f_img)
+  h5open(f_img, "w") do file
+    for i=1:length(rf)
+      write(file, "/rf$(rf[i])_re", real.(img_cg[i][:,:,1,1,1]))
+      write(file, "/rf$(rf[i])_im", imag.(img_cg[i][:,:,1,1,1]))
+    end
+  end
+end
+
+exit()

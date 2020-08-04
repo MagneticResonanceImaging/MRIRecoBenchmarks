@@ -5,8 +5,8 @@ setenv('TOOLBOX_PATH', '/opt/bart-0.6.00');
 addpath(strcat(getenv('TOOLBOX_PATH'),'/matlab'));
 
 %% Load data
-rawdata_real    = h5read('data/rawdata_brain_radial_96proj_12ch.h5','/rawdata');
-trajectory      = h5read('data/rawdata_brain_radial_96proj_12ch.h5','/trajectory');
+rawdata_real    = h5read('./data/rawdata_brain_radial_96proj_12ch.h5','/rawdata');
+trajectory      = h5read('./data/rawdata_brain_radial_96proj_12ch.h5','/trajectory');
 
 rawdata = rawdata_real.r+1i*rawdata_real.i; clear rawdata_real;
 rawdata = permute(rawdata,[4,3,2,1]); % Dimension convention of BART
@@ -23,7 +23,7 @@ kspace_calib = bart('fft -u 3', img_igrid);
 smaps = bart('slice 4 0', calib);
 
 %% L2-SENSE reco for reference
-img_ref = bart('pics -l2 -r 0.001 -i 100 -t', trajectory, rawdata, smaps);
+% img_ref = bart('pics -l2 -r 0.001 -i 100 -t', trajectory, rawdata, smaps);
 
 %% undersampled L2-SENSE reco for different undersampling factors
 rf = [1,2,3,4];
@@ -38,8 +38,16 @@ for i=1:length(rf)
 end
 
 %% write output images and reco times to files
-writematrix(times, 'reco/bart/recoTimesBart.csv', 'WriteMode', 'append');
-for i=1:length(rf)
-   h5create('reco/img_cg_bart.h5',['/rf' num2str(rf(i))],[300,300])
-   h5write('reco/img_cg_bart.h5', ['/rf' num2str(rf(i))], mydata)
+f_times = './reco/recoTimes_bart.csv';
+f_img = './reco/imgCG_bart.h5';
+dlmwrite(f_times, times, '-append');
+if ~isfile(f_img)
+    for i=1:length(rf)
+        h5create(f_img,['/rf' num2str(rf(i)) '_re'], size(img_cg{i}));
+        h5write(f_img, ['/rf' num2str(rf(i)) '_re'], real(img_cg{i}));
+        h5create(f_img,['/rf' num2str(rf(i)) '_im'], size(img_cg{i}));
+        h5write(f_img, ['/rf' num2str(rf(i)) '_im'], imag(img_cg{i}));
+    end
 end
+
+exit();
