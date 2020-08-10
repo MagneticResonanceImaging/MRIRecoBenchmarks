@@ -1,0 +1,109 @@
+\documentclass{standalone} %[varwidth]
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usetikzlibrary{calc}
+%s\usepackage{siunitx}
+%\def\size{0.15\textwidth}
+%\def\sizespace{0.18\textwidth}
+
+\usepackage{tikz}
+\usepackage{tikzscale}
+\usetikzlibrary{positioning,shapes,shapes.multipart}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.5.1}
+
+\tikzset{
+  ../../../pics/square/.default={1},
+  ../../../pics/square/.style = {
+    code = {
+    \draw[pic actions] (0,0) rectangle (#1,0.6#1);
+    }
+  }
+} 
+
+\pgfplotsset{width=4.5cm,compat=1.5.1}
+\newcommand{\zb}[1]{\mbox{\boldmath{${#1}$}}}
+\newcommand{\zbs}[1]{\mbox{\boldmath\scriptsize{${#1}$}}}
+
+\definecolor{ibilight}{RGB}{193,216,237}
+\definecolor{ibidark}{RGB}{0,73,146}
+\definecolor{uke2}{RGB}{170,156,143}
+\definecolor{uke3}{RGB}{87,87,86}
+\definecolor{ukesec1}{RGB}{255,223,0}
+\definecolor{ukesec2}{RGB}{239,123,5}
+\definecolor{ukesec3}{RGB}{104,195,205}
+\definecolor{ukesec4}{RGB}{138,189,36}
+\definecolor{tuhh}{RGB}{45,198,214}
+
+\begin{document}
+
+
+
+\begin{tikzpicture}[node distance=-0.05cm and -0.05cm]%[scale=1, every node/.style={scale=0.8}]
+\def\sizex{6cm}
+\def\sizey{5cm}
+
+\pgfplotsset{footnotesize,
+             grid=both,
+             width=\sizex,
+             height=\sizey,
+             extra y ticks={1},
+             axis background/.style={fill=white},
+             ylabel=Time [s],
+             legend style={%at={(0.99,0.98)},anchor=north east,
+                           at={(0.35,0.7)},anchor=west,
+						   cells={anchor=west},}},
+
+\tikzset{every mark/.append style={scale=0.5}}
+
+
+
+\begin{axis}[
+    xtick={1,4,8,12},
+    extra y tick labels={},
+    title={$R=1$},
+    xlabel=\# Threads
+    ]
+
+    \pgfplotstableread[col sep=comma]{../reco/recoTimes.csv}\DataBart
+    \pgfplotstableread[col sep=comma]{../reco/recoTimes_mrireco_toeplitz1_oversamp2.0.csv}\DataMRIReco
+    \pgfplotstableread[col sep=comma]{../reco/recoTimes_mrireco_toeplitz0_oversamp1.25.csv}\DataMRIRecoOver
+    
+    \addplot [ukesec2, mark=*,line width=2] table [x expr=\thisrowno{0}, y expr=\thisrowno{1}] {\DataBart};
+    \addlegendentry{BART };
+    
+      \addplot [ibidark, mark=*,line width=2] table [x expr=\thisrowno{0}, y expr=\thisrowno{1}] {\DataMRIReco};
+    \addlegendentry{MRIReco};
+    
+    \addplot [ukesec3, mark=*,line width=2] table [x expr=\thisrowno{0}, y expr=\thisrowno{1}] {\DataMRIRecoOver};
+     \addlegendentry{MRIReco*};
+
+\end{axis}
+
+
+\begin{axis}[
+    xtick={1,4,8,12},
+    extra y tick labels={},
+    xlabel=\# Threads,
+    title={$R=4$}, xshift=\sizex
+    ]
+
+    \pgfplotstableread[col sep=comma]{../reco/recoTimes.csv}\DataBart
+    \pgfplotstableread[col sep=comma]{../reco/recoTimes_mrireco_toeplitz1_oversamp2.csv}\DataMRIReco
+    \pgfplotstableread[col sep=comma]{../reco/recoTimes_mrireco_toeplitz0_oversamp1.25.csv}\DataMRIRecoOver
+    
+    \addplot [ukesec2, mark=*,line width=2] table [x expr=\thisrowno{0}, y expr=\thisrowno{4}] {\DataBart};
+    %\addlegendentry{BART };
+    
+      \addplot [ibidark, mark=*,line width=2] table [x expr=\thisrowno{0}, y expr=\thisrowno{4}] {\DataMRIReco};
+    %\addlegendentry{MRIReco};
+    
+    \addplot [ukesec3, mark=*,line width=2] table [x expr=\thisrowno{0}, y expr=\thisrowno{4}] {\DataMRIRecoOver};
+
+
+\end{axis}
+
+\end{tikzpicture}
+
+
+\end{document}

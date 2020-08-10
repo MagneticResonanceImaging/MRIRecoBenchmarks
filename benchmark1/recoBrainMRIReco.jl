@@ -1,11 +1,14 @@
-using HDF5, MRIReco, LinearAlgebra, DelimitedFiles, BenchmarkTools
-FFTW.set_num_threads(1);BLAS.set_num_threads(1)
+using HDF5, MRIReco, DelimitedFiles, BenchmarkTools
 
 filename = "./data/rawdata_brain_radial_96proj_12ch.h5"
 data = permutedims(h5read(filename, "rawdata"),[3,2,1,4])
 traj = permutedims(h5read(filename, "trajectory"),[3,2,1])
 N = 300
 Nc = 12
+toeplitz = parse(Int,get(ENV,"TOEPLITZ","0"))
+oversamplingFactor = parse(Float64,get(ENV,"OVERSAMPLING","1.25"))
+
+@info "Threads = $(Threads.nthreads()) Toeplitz=$(toeplitz)  OversamplingFactor=$(oversamplingFactor)"   
 
 #############################################
 # load data and form Acquisition data object
@@ -33,6 +36,8 @@ params[:regularization] = "L2"
 params[:λ] = 1.e-2
 params[:iterations] = 100
 params[:solver] = "cgnr"
+params[:toeplitz] = toeplitz == 1
+params[:oversamplingFactor] = oversamplingFactor
 params[:senseMaps] = reshape(sensitivity, N, N, 1, Nc)
 
 # @time img_ref = reconstruction(acqData, params).data
@@ -49,20 +54,21 @@ params[:relTol] = 0.0
 for i = 1:length(rf)
   @info "r=$(rf[i])"
   # undersample profiles
-  acqDataSub = convertUndersampledData(sample_kspace(acqData, Float64.(rf[i]), "regular"))
+  global acqDataSub = convertUndersampledData(sample_kspace(acqData, Float64.(rf[i]), "regular"))
   # SENSE reconstruction while monitoring error
   # run twice to take factor out precompilation effects
   img_cg[i] = reconstruction(acqDataSub, params).data
-  times[i] = @elapsed img_cg[i] = reconstruction(acqDataSub, params).data
+  times[i] = @belapsed reconstruction(acqDataSub, params).data
 end
 
 ##############
 # write output
 ##############
-f_times = "./reco/recoTimes_mrireco.csv"
-f_img  = "./reco/imgCG_mrireco.h5"
+f_times = "./reco/recoTimes_mrireco_toeplitz$(toeplitz)_oversamp$(oversamplingFactor).csv"
+f_img  = "./reco/imgCG_mrireco_toeplitz$(toeplitz)_oversamp$(oversamplingFactor).h5"
+
 open(f_times,"a") do file
-  writedlm(file, transpose(times))
+  writedlm(file, hcat(Threads.nthreads(), transpose(times)), ',')
 end
 
 if !isfile(f_img)

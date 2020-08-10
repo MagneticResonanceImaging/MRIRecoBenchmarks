@@ -1,0 +1,95 @@
+\documentclass{standalone} %[varwidth]
+
+%\def\size{0.15\textwidth}
+%\def\sizespace{0.18\textwidth}
+
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usepackage{tikzscale}
+\usetikzlibrary{positioning,shapes,shapes.multipart}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.5.1}
+
+\tikzset{
+  ../pics/square/.default={1},
+  ../pics/square/.style = {
+    code = {
+    \draw[pic actions] (0,0) rectangle (#1,0.6#1);
+    }
+  }
+} 
+
+\pgfplotsset{width=4.5cm,compat=1.5.1}
+\newcommand{\zb}[1]{\mbox{\boldmath{${#1}$}}}
+\newcommand{\zbs}[1]{\mbox{\boldmath\scriptsize{${#1}$}}}
+
+\begin{document}
+
+\begin{tikzpicture}
+\tikzstyle{nodered} = [inner sep = 1pt, draw=red, line width=1pt, fill=red]
+\tikzstyle{nodewhite} = [inner sep = 1pt, draw=white, line width=1pt, fill=white]
+
+%& Conc Series &$\lambda^1$ & $\lambda^1$ windowed & $\lambda^2$ windowed & mask & new reco \\
+\node[inner sep=1pt] (conc1) at (0,0) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_bart_rf1.png}};
+\node[right = 1pt of conc1, nodewhite] (conc2) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_bart_rf2.png}};
+\node[right = 1pt of conc2, nodewhite] (conc3) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_bart_rf3.png}};
+\node[right = 1pt of conc3, nodewhite] (conc4) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_bart_rf4.png}};
+
+% Labels above figures
+\node[above = -0.2mm of conc1]{$R=1$};
+\node[above = -0.2mm of conc2]{$R=2$};
+\node[above = -0.2mm of conc3]{$R=3$};
+\node[above = -0.2mm of conc4]{$R=4$};
+
+\node[rotate=90, left = 2mm of conc1, xshift=5mm]{BART};
+
+\node[inner sep=1pt, below = 2pt of conc1] (conc1) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_diff_bart_rf1.png}};
+\node[right = 1pt of conc1, nodewhite] (conc2) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_diff_bart_rf2.png}};
+\node[right = 1pt of conc2, nodewhite] (conc3) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_diff_bart_rf3.png}};
+\node[right = 1pt of conc3, nodewhite] (conc4) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_diff_bart_rf4.png}};
+\node[rotate=90, left = 2mm of conc1, xshift=9mm]{Diff BART};
+
+\node[inner sep=1pt, below=2pt of conc1] (conc1) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_mrireco_toeplitz1_oversamp2.0_rf1.png}};
+\node[right = 1pt of conc1, nodewhite] (conc2) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_mrireco_toeplitz1_oversamp2.0_rf2.png}};
+\node[right = 1pt of conc2, nodewhite] (conc3) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_mrireco_toeplitz1_oversamp2.0_rf3.png}};
+\node[right = 1pt of conc3, nodewhite] (conc4) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_mrireco_toeplitz1_oversamp2.0_rf4.png}};
+\node[rotate=90, left = 2mm of conc1, xshift=8mm]{MRIReco};
+
+
+\node[inner sep=1pt, below = 2pt of conc1] (conc1) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_diff_mrireco_rf1.png}};
+\node[right = 1pt of conc1, nodewhite] (conc2) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_diff_mrireco_rf2.png}};
+\node[right = 1pt of conc2, nodewhite] (conc3) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_diff_mrireco_rf3.png}};
+\node[right = 1pt of conc3, nodewhite] (conc4) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_diff_mrireco_rf4.png}};
+\node[rotate=90, left = 2mm of conc1, xshift=12mm]{Diff MRIReco};
+
+\node[inner sep=1pt, below = 2pt of conc1] (conc1) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_diff_rf1.png}};
+\node[right = 1pt of conc1, nodewhite] (conc2) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_diff_rf2.png}};
+\node[right = 1pt of conc2, nodewhite] (conc3) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_diff_rf3.png}};
+\node[right = 1pt of conc3, nodewhite] (conc4) 
+{\includegraphics[width=0.2\textwidth]{../reco/imgCG_diff_rf4.png}};
+\node[rotate=90, left = 2mm of conc1, xshift=9mm]{Diff Both};
+
+
+\centering
+\end{tikzpicture}
+
+\end{document}

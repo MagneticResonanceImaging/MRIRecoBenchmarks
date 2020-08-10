@@ -38,9 +38,10 @@ for i=1:length(rf)
 end
 
 %% write output images and reco times to files
-f_times = './reco/recoTimes_bart.csv';
-f_img = './reco/imgCG_bart.h5';
-dlmwrite(f_times, times, '-append');
+f_times = ['./reco/recoTimes_bart.csv'];
+f_img = ['./reco/imgCG_bart.h5'];
+nthreads = str2double(getenv('OMP_NUM_THREADS'));
+dlmwrite(f_times, horzcat(nthreads,times), '-append');
 if ~isfile(f_img)
     for i=1:length(rf)
         h5create(f_img,['/rf' num2str(rf(i)) '_re'], size(img_cg{i}));
