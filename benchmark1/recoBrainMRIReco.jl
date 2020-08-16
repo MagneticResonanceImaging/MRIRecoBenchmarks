@@ -1,5 +1,9 @@
 using HDF5, MRIReco, DelimitedFiles, BenchmarkTools
 
+# change BenchmarkTools settings to match what we do in the Matlab script
+BenchmarkTools.DEFAULT_PARAMETERS.seconds = 10000
+BenchmarkTools.DEFAULT_PARAMETERS.samples = 20
+
 filename = "./data/rawdata_brain_radial_96proj_12ch.h5"
 data = permutedims(h5read(filename, "rawdata"),[3,2,1,4])
 traj = permutedims(h5read(filename, "trajectory"),[3,2,1])

@@ -29,12 +29,18 @@ smaps = bart('slice 4 0', calib);
 rf = [1,2,3,4];
 times = zeros(1, length(rf));
 img_cg = {};
+numTrials = 20;
+
 for i=1:length(rf)
     traj_sub = trajectory(:,:,1:rf(i):nSpokes);
     rawdata_sub = rawdata(:,:,1:rf(i):nSpokes,:);
-    tic();
-    img_cg{i} = bart('pics -l2 -r 0.001 -i 20 -t', traj_sub, rawdata_sub, smaps);
-    times(i) = toc();
+    timesTrials = zeros(1, numTrials);
+    for k=1:numTrials
+      tic();
+      img_cg{i} = bart('pics -l2 -r 0.001 -i 20 -t', traj_sub, rawdata_sub, smaps);
+      timesTrials(k) = toc();
+    end
+    times(i) = min(timesTrials);
 end
 
 %% write output images and reco times to files
