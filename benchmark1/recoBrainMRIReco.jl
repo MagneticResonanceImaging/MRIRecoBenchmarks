@@ -1,14 +1,15 @@
 using HDF5, MRIReco, DelimitedFiles, BenchmarkTools
 
-# change BenchmarkTools settings to match what we do in the Matlab script
+trials = parse(Int,get(ENV,"NUM_TRIALS","3"))
 BenchmarkTools.DEFAULT_PARAMETERS.seconds = 10000
-BenchmarkTools.DEFAULT_PARAMETERS.samples = 20
+BenchmarkTools.DEFAULT_PARAMETERS.samples = trials
 
 filename = "./data/rawdata_brain_radial_96proj_12ch.h5"
 data = permutedims(h5read(filename, "rawdata"),[3,2,1,4])
 traj = permutedims(h5read(filename, "trajectory"),[3,2,1])
 N = 300
 Nc = 12
+T = Float64
 toeplitz = parse(Int,get(ENV,"TOEPLITZ","0"))
 oversamplingFactor = parse(Float64,get(ENV,"OVERSAMPLING","1.25"))
 
@@ -17,8 +18,8 @@ oversamplingFactor = parse(Float64,get(ENV,"OVERSAMPLING","1.25"))
 #############################################
 # load data and form Acquisition data object
 ##############################################
-tr = Trajectory(reshape(traj[1:2,:,:],2,:) ./ N, 96, 512, circular=false)
-dat = Array{Array{Complex{Float64},2},3}(undef,1,1,1)
+tr = Trajectory(T.(reshape(traj[1:2,:,:],2,:) ./ N), 96, 512, circular=false)
+dat = Array{Array{Complex{T},2},3}(undef,1,1,1)
 dat[1,1,1] = 1.e8.*reshape(data,:,12)
 acqData = AcquisitionData(tr, dat, encodingSize=[N,N,1])
 
@@ -42,7 +43,7 @@ params[:iterations] = 100
 params[:solver] = "cgnr"
 params[:toeplitz] = toeplitz == 1
 params[:oversamplingFactor] = oversamplingFactor
-params[:senseMaps] = reshape(sensitivity, N, N, 1, Nc)
+params[:senseMaps] = Complex{T}.(reshape(sensitivity, N, N, 1, Nc))
 
 # @time img_ref = reconstruction(acqData, params).data
 
@@ -51,7 +52,7 @@ params[:senseMaps] = reshape(sensitivity, N, N, 1, Nc)
 ##############################
 @info "undersampled reco"
 rf = [1,2,3,4]
-img_cg = Vector{Array{ComplexF64,5}}(undef,4)
+img_cg = Vector{Array{Complex{T},5}}(undef,4)
 times = zeros(length(rf))
 params[:iterations] = 20
 params[:relTol] = 0.0
@@ -62,7 +63,13 @@ for i = 1:length(rf)
   # SENSE reconstruction while monitoring error
   # run twice to take factor out precompilation effects
   img_cg[i] = reconstruction(acqDataSub, params).data
-  times[i] = @belapsed reconstruction(acqDataSub, params).data
+  #times[i] = @belapsed reconstruction(acqDataSub, params).data
+  timesTrials = zeros(Float64,trials)
+  for k in range(1,trials) #can't use belapsed... don't know why
+    timesTrials[k] = @elapsed reconstruction(acqDataSub, params).data
+  end
+  times[i] = minimum(timesTrials)
+  @info times[i]
 end
 
 ##############
