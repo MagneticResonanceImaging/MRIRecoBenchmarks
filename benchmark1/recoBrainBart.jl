@@ -1,9 +1,10 @@
 using HDF5, MRIReco, DelimitedFiles, BenchmarkTools, BartIO
 
 bart = wrapper_bart(ENV["TOOLBOX_PATH"])
+trials = parse(Int,get(ENV,"NUM_TRIALS","3"))
 # change BenchmarkTools settings to match what we do in the Matlab script
 BenchmarkTools.DEFAULT_PARAMETERS.seconds = 10000
-BenchmarkTools.DEFAULT_PARAMETERS.samples = evals = 20
+BenchmarkTools.DEFAULT_PARAMETERS.samples = trials
 
 
 filename = "./data/rawdata_brain_radial_96proj_12ch.h5"
@@ -42,11 +43,12 @@ for (i,d) in enumerate(rf)
   # SENSE reconstruction while monitoring error
   # run twice to take factor out precompilation effects
   img_cg[i] = bart(1,"pics -l2 -r 0.001 -i 20 -t", traj_sub, rawdata_sub,smaps);
-  timesTrials = zeros(Float64,evals)
-  for k in range(1,evals) #can't use belapsed... don't know why
+  timesTrials = zeros(Float64,trials)
+  for k in range(1,trials) #can't use belapsed... don't know why
     timesTrials[k] = @elapsed bart(1,"pics -l2 -r 0.001 -i 20 -t", traj_sub, rawdata_sub,smaps);
   end
-  times[i]=minimum(timesTrials)
+  times[i] = minimum(timesTrials)
+  @info times[i]
 end
 
 ##############
