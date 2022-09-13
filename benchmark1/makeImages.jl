@@ -1,5 +1,12 @@
-using ImageUtils, HDF5, LinearAlgebra, RegularizedLeastSquares
+using ImageUtils, HDF5, LinearAlgebra, RegularizedLeastSquares, DelimtedFiles
 
+
+function makeTimings()
+
+end
+
+
+function makeImages()
 
 imagesBart = Any[]
 imagesMRIReco = Any[]
@@ -10,9 +17,7 @@ rf = [1,2,3,4]
 f_img  = "./reco/imgCG_bart.h5"
 for i = 1:length(rf)
   h5open(f_img, "r") do file
-    A = read(file, "/rf$(rf[i])_re")
-    B = read(file, "/rf$(rf[i])_im")
-    im_ = A.+im.*B
+    im_ = read(file, "/rf$(rf[i])")
     push!(imagesBart, im_)
     filename = "./reco/imgCG_bart_rf$(rf[i]).png"
     exportImage(filename, abs.(im_), colormap="viridis")
@@ -23,9 +28,7 @@ end
 f_img  = "./reco/imgCG_mrireco_toeplitz1_oversamp2.0.h5"
 for i = 1:length(rf)
   h5open(f_img, "r") do file
-    A = read(file, "/rf$(rf[i])_re")
-    B = read(file, "/rf$(rf[i])_im")
-    im_ = A.+im.*B
+    im_ = read(file, "/rf$(rf[i])")
     push!(imagesMRIReco, im_)
     filename = "./reco/imgCG_mrireco_toeplitz1_oversamp2.0_rf$(rf[i]).png"
     exportImage(filename, abs.(im_),colormap="viridis" )
@@ -35,9 +38,7 @@ end
 f_img  = "./reco/imgCG_mrireco_toeplitz0_oversamp1.25.h5"
 for i = 1:length(rf)
   h5open(f_img, "r") do file
-    A = read(file, "/rf$(rf[i])_re")
-    B = read(file, "/rf$(rf[i])_im")
-    im_ = A.+im.*B
+    im_ = read(file, "/rf$(rf[i])")
     push!(imagesMRIReco2, im_)
     filename = "./reco/imgCG_mrireco_toeplitz0_oversamp1.25_rf$(rf[i]).png"
     exportImage(filename, abs.(im_), colormap="viridis" )
@@ -88,6 +89,10 @@ for i = 1:length(rf)
   
 end
 
+end
+
+#makeImages()
+makeTimings()
 
 
 

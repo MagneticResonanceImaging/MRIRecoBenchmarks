@@ -1,4 +1,4 @@
-using HDF5, MRIReco, DelimitedFiles, BenchmarkTools
+using HDF5, MRIReco, DelimitedFiles, BenchmarkTools, ProfileView
 
 trials = parse(Int,get(ENV,"NUM_TRIALS","3"))
 BenchmarkTools.DEFAULT_PARAMETERS.seconds = 10000
@@ -9,7 +9,7 @@ data = permutedims(h5read(filename, "rawdata"),[3,2,1,4])
 traj = permutedims(h5read(filename, "trajectory"),[3,2,1])
 N = 300
 Nc = 12
-T = Float64
+T = Float32
 toeplitz = parse(Int,get(ENV,"TOEPLITZ","0"))
 oversamplingFactor = parse(Float64,get(ENV,"OVERSAMPLING","1.25"))
 
@@ -26,9 +26,18 @@ acqData = AcquisitionData(tr, dat, encodingSize=[N,N,1])
 ################################
 # generate coil sensitivity maps
 ################################
-@info "Espirit"
-acqDataCart = regrid2d(acqData, (N,N); cgnr_iter=3)
-sensitivity = espirit(acqDataCart, (6,6), 30, eigThresh_1=0.02, eigThresh_2=0.98)
+
+
+f_sensitivity  = "./data/sensitivitiesMRIReco.h5"
+
+if !isfile(f_sensitivity)
+  @info "Espirit"
+  acqDataCart = regrid2d(acqData, (N,N); cgnr_iter=3)
+  sensitivity = espirit(acqDataCart, (6,6), 30, eigThresh_1=0.02, eigThresh_2=0.98)
+  h5write(f_sensitivity, "/sensitivity", sensitivity)
+else
+  sensitivity = h5read(f_sensitivity, "/sensitivity")
+end
 
 ##########################
 # reference reconstruction
@@ -38,7 +47,7 @@ params = Dict{Symbol, Any}()
 params[:reco] = "multiCoil"
 params[:reconSize] = (N,N)
 params[:regularization] = "L2"
-params[:λ] = 1.e-2
+params[:λ] = T(1.e-2)
 params[:iterations] = 100
 params[:solver] = "cgnr"
 params[:toeplitz] = toeplitz == 1
@@ -59,7 +68,7 @@ params[:relTol] = 0.0
 for i = 1:length(rf)
   @info "r=$(rf[i])"
   # undersample profiles
-  global acqDataSub = convertUndersampledData(sample_kspace(acqData, Float64.(rf[i]), "regular"))
+  global acqDataSub = convertUndersampledData(sample_kspace(acqData, T(rf[i]), "regular"))
   # SENSE reconstruction while monitoring error
   # run twice to take factor out precompilation effects
   img_cg[i] = reconstruction(acqDataSub, params).data
@@ -75,6 +84,8 @@ end
 ##############
 # write output
 ##############
+mkpath("./reco/")
+
 f_times = "./reco/recoTimes_mrireco_toeplitz$(toeplitz)_oversamp$(oversamplingFactor).csv"
 f_img  = "./reco/imgCG_mrireco_toeplitz$(toeplitz)_oversamp$(oversamplingFactor).h5"
 
@@ -85,8 +96,7 @@ end
 if !isfile(f_img)
   h5open(f_img, "w") do file
     for i=1:length(rf)
-      write(file, "/rf$(rf[i])_re", real.(img_cg[i][:,:,1,1,1]))
-      write(file, "/rf$(rf[i])_im", imag.(img_cg[i][:,:,1,1,1]))
+      write(file, "/rf$(rf[i])", img_cg[i][:,:,1,1,1])
     end
   end
 end

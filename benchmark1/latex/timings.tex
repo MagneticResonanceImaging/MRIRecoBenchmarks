@@ -65,7 +65,7 @@
     xlabel=\# Threads
     ]
 
-    \pgfplotstableread[col sep=comma]{../reco/recoTimes.csv}\DataBart
+    \pgfplotstableread[col sep=comma]{../reco/recoTimes_bart.csv}\DataBart
     \pgfplotstableread[col sep=comma]{../reco/recoTimes_mrireco_toeplitz1_oversamp2.0.csv}\DataMRIReco
     \pgfplotstableread[col sep=comma]{../reco/recoTimes_mrireco_toeplitz0_oversamp1.25.csv}\DataMRIRecoOver
     
@@ -88,8 +88,8 @@
     title={$R=4$}, xshift=\sizex
     ]
 
-    \pgfplotstableread[col sep=comma]{../reco/recoTimes.csv}\DataBart
-    \pgfplotstableread[col sep=comma]{../reco/recoTimes_mrireco_toeplitz1_oversamp2.csv}\DataMRIReco
+    \pgfplotstableread[col sep=comma]{../reco/recoTimes_bart.csv}\DataBart
+    \pgfplotstableread[col sep=comma]{../reco/recoTimes_mrireco_toeplitz1_oversamp2.0.csv}\DataMRIReco
     \pgfplotstableread[col sep=comma]{../reco/recoTimes_mrireco_toeplitz0_oversamp1.25.csv}\DataMRIRecoOver
     
     \addplot [ukesec2, mark=*,line width=2] table [x expr=\thisrowno{0}, y expr=\thisrowno{4}] {\DataBart};
