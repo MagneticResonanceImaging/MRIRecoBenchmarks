@@ -9,6 +9,7 @@ f_img  = "./reco/images.h5"
 rm(f_times, force=true)
 rm(f_img, force=true)
 mkpath("./reco/")
+mkpath("./data/")
 
 
 ENV["NUM_TRIALS"] = trials
