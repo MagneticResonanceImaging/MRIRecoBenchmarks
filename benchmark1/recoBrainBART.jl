@@ -11,6 +11,9 @@ filename = "./data/rawdata_brain_radial_96proj_12ch.h5"
 
 rawdata = permutedims(h5read(filename, "rawdata"),[4,3,2,1]); # bart convention
 traj = permutedims(h5read(filename, "trajectory"),[3,2,1]);
+N = 300
+toeplitz = parse(Int,get(ENV,"TOEPLITZ","1"))
+oversamplingFactor = parse(Float64,get(ENV,"OVERSAMPLING","2.0"))
 _,nFE,nSpokes,nCh = size(rawdata);
 
 ## Demo: NUFFT reconstruction with BART
@@ -40,7 +43,7 @@ end
 ##############################
 @info "undersampled reco"
 rf = [1,2,3,4]
-img_cg = Vector{Array{ComplexF32,2}}(undef,4)
+img_cg = Array{ComplexF32,3}(undef,N,N,4)
 times = zeros(length(rf))
 
 for (i,d) in enumerate(rf)
@@ -50,8 +53,7 @@ for (i,d) in enumerate(rf)
   rawdata_sub = rawdata[:,:,1:d:nSpokes,:]
 
   # SENSE reconstruction while monitoring error
-  # run twice to take factor out precompilation effects
-  img_cg[i] = bart(1,"pics -l2 -r 0.001 -i 20 -t", traj_sub, rawdata_sub, sensitivity);
+  img_cg[:,:,i] = bart(1,"pics -l2 -r 0.001 -i 20 -t", traj_sub, rawdata_sub, sensitivity)
   timesTrials = zeros(Float64,trials)
   for k in range(1,trials) #can't use belapsed... don't know why
     timesTrials[k] = @elapsed bart(1,"pics -l2 -r 0.001 -i 20 -t", traj_sub, rawdata_sub, sensitivity);
@@ -63,22 +65,17 @@ end
 ##############
 # write output
 ##############
-mkpath("./reco/")
 
-f_times = "./reco/recoTimes_bart.csv"
-f_img  = "./reco/imgCG_bart.h5"
+f_times = "./reco/recoTimes.csv"
+f_img  = "./reco/images.h5"
 
 nthreads = parse(Int,ENV["OMP_NUM_THREADS"]);
 open(f_times,"a") do file
-  writedlm(file, hcat(nthreads, transpose(times)), ',')
+  writedlm(file, hcat("BART", nthreads, toeplitz, oversamplingFactor, transpose(times)), ',')
 end
 
-if !isfile(f_img)
-  h5open(f_img, "w") do file
-    for i=1:lastindex(rf)
-      write(file, "/rf$(rf[i])", img_cg[i])
-    end
-  end
+if nthreads == 1
+  h5write(f_img, "/recoBART", img_cg)
 end
 
 exit()

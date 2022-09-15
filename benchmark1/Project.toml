@@ -3,6 +3,9 @@ BartIO = "8b90e6a2-6e4d-4906-89ae-b5f72ca4a65b"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
-MRIBase = "f7771a9a-6e57-4e71-863b-6e4b6a2f17df"
-MRIFiles = "5a6f062f-bf45-497d-b654-ad17aae2a530"
 MRIReco = "bdf86e05-2d2b-5731-a332-f3fe1f9e047f"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+
+[compat]
+MRIReco = "0.5.3"
+DataFrames = "1.4"

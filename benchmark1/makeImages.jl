@@ -1,49 +1,5 @@
-using ImageUtils, HDF5, LinearAlgebra, RegularizedLeastSquares, DelimtedFiles
+using Plots, Measures, HDF5, LinearAlgebra, RegularizedLeastSquares, DelimitedFiles, DataFrames
 
-
-function makeTimings()
-
-end
-
-
-function makeImages()
-
-imagesBart = Any[]
-imagesMRIReco = Any[]
-imagesMRIReco2 = Any[]
-
-rf = [1,2,3,4]
-
-f_img  = "./reco/imgCG_bart.h5"
-for i = 1:length(rf)
-  h5open(f_img, "r") do file
-    im_ = read(file, "/rf$(rf[i])")
-    push!(imagesBart, im_)
-    filename = "./reco/imgCG_bart_rf$(rf[i]).png"
-    exportImage(filename, abs.(im_), colormap="viridis")
-  end
-end
-
-
-f_img  = "./reco/imgCG_mrireco_toeplitz1_oversamp2.0.h5"
-for i = 1:length(rf)
-  h5open(f_img, "r") do file
-    im_ = read(file, "/rf$(rf[i])")
-    push!(imagesMRIReco, im_)
-    filename = "./reco/imgCG_mrireco_toeplitz1_oversamp2.0_rf$(rf[i]).png"
-    exportImage(filename, abs.(im_),colormap="viridis" )
-  end
-end
-
-f_img  = "./reco/imgCG_mrireco_toeplitz0_oversamp1.25.h5"
-for i = 1:length(rf)
-  h5open(f_img, "r") do file
-    im_ = read(file, "/rf$(rf[i])")
-    push!(imagesMRIReco2, im_)
-    filename = "./reco/imgCG_mrireco_toeplitz0_oversamp1.25_rf$(rf[i]).png"
-    exportImage(filename, abs.(im_), colormap="viridis" )
-  end
-end
 
 function optimalScaling(I,Ireco)
   N = length(I)
@@ -57,39 +13,121 @@ function optimalScaling(I,Ireco)
   return I2
 end
 
-A1 = abs.(imagesMRIReco[1])
-A1 .= A1 ./maximum(A1)
+function makeTimings()
+  f_times = "./reco/recoTimes.csv"
+  header = ["Lib", "threads", "toeplitz", "oversampling", "r1", "r2", "r3", "r4"]
+  data = readdlm(f_times, ',')
+  df = DataFrame(data, vec(header))
   
-B1 = abs.(imagesBart[1])
-B1 .= B1 ./maximum(B1)
-
-for i = 1:length(rf)
-  A = abs.(imagesMRIReco[i])
-  A .= A ./maximum(A)
+  threads = unique(df[:,:threads])
   
-  B = abs.(imagesBart[i])
-  B .= optimalScaling(A,B)
+  colors = [RGB(0.0,0.29,0.57), RGB(0.3,0.5,0.7), RGB(0.94,0.53,0.12), RGB(0.99,0.75,0.05)]
+  
+  Plots.scalefontsizes()
+  Plots.scalefontsizes(0.99)
+  
+  ls = [:solid, :solid, :solid]
+  shape = [:circle, :circle, :circle]
+  lw = 3
+  
+  pl = Any[]
+  
+  for r in [1,4]
+  
+    p = plot(threads, df[df.Lib .== "BART", Symbol("r$r")],  #ylims=(0.0,1.2),
+              lw=lw, xlabel = "# Threads", ylabel = "Time [s]", label="BART",
+              legend = :topright,  
+              title="R = $r", 
+              shape=shape[1], ls=ls[1], 
+              c=colors[1], msc=colors[1], mc=colors[1], ms=4, msw=2)
+              
+    plot!(p, threads, df[df.Lib .== "MRIReco" .&& df.toeplitz .== true, Symbol("r$r")], 
+              label="MRIReco", lw=lw, shape=shape[2], ls=ls[2], 
+              c=colors[2], msc=colors[2], mc=colors[2], ms=4, msw=2)
+              
+    plot!(p, threads, df[df.Lib .== "MRIReco" .&& df.toeplitz .== false, Symbol("r$r")], 
+              label="MRIReco NonToeplitz", lw=lw, shape=shape[3], ls=ls[3], 
+              c=colors[3], msc=colors[3], mc=colors[3], ms=4, msw=2)
+              
+    push!(pl, p)
+  
+  end
+  
+  p_ = plot(pl..., size=(600,300), layout=(1,2) )
+             
+  savefig(p_, "./reco/timings.pdf")
  
-  D = A.-B 
-  filename = "./reco/imgCG_diff_rf$(rf[i]).png"
-  exportImage(filename, D, colormap="viridis", vmin=-0.1, vmax=0.1, normalize=false )
-  
-  ###
-  A .= optimalScaling(A1,A)
-  D = A.-A1 
-  filename = "./reco/imgCG_diff_mrireco_rf$(rf[i]).png"
-  exportImage(filename, D, colormap="viridis", vmin=-0.1, vmax=0.1, normalize=false )  
-
-  B .= optimalScaling(B1,B)
-  D = B.-B1 
-  filename = "./reco/imgCG_diff_bart_rf$(rf[i]).png"
-  exportImage(filename, D, colormap="viridis", vmin=-0.1, vmax=0.1, normalize=false )  
-  
-  @info nrmsd(A,B)   nrmsd(abs.(imagesMRIReco[1]),A)  nrmsd(abs.(imagesBart[1]),B)
+  return p_
   
 end
 
+
+function makeImages()
+
+  f_img  = "./reco/images.h5"
+  imagesBart = reverse(abs.(h5read(f_img, "/recoBART")),dims=1)
+  imagesMRIReco = reverse(abs.(h5read(f_img, "/recoMRIReco0")), dims=1)
+  rf = size(imagesBart,3)
+  
+  
+  for r = 1:rf
+    imagesMRIReco[:,:,r] ./= maximum(imagesMRIReco[:,:,r])
+    imagesBart[:,:,r] .= optimalScaling(imagesMRIReco[:,:,r], imagesBart[:,:,r])
+  end
+  m = 1
+  
+  plBART = Any[]
+  for r = 1:rf
+    push!(plBART, heatmap( imagesBart[:,:,r], clim=(0,m), c=:viridis, 
+             ticks=nothing, colorbar=nothing, 
+             title="R = $r", annotations = 
+                (5,25, Plots.text((r==1) ? "BART" : "", :white, :left)) ) )
+  end
+  
+  plBARTDiff = Any[]
+  for r = 1:rf
+    push!(plBARTDiff, heatmap( optimalScaling(imagesBart[:,:,1],imagesBart[:,:,r])  - imagesBart[:,:,1], 
+             clim=(-0.1*m,0.1*m), c=:viridis, 
+             ticks=nothing, colorbar=nothing, 
+             annotations = 
+                (5,25, Plots.text((r==1) ? "Diff BART" : "", :white, :left)) ) )
+  end
+  
+  plMRIReco = Any[]
+  for r = 1:rf
+    push!(plMRIReco, heatmap( imagesMRIReco[:,:,r], clim=(0,m), c=:viridis, 
+             ticks=nothing, colorbar=nothing, 
+             annotations = 
+                (5,25, Plots.text((r==1) ? "MRIReco.jl" : "", :white, :left)) ) )
+  end
+  
+  plMRIRecoDiff = Any[]
+  for r = 1:rf
+    push!(plMRIRecoDiff, heatmap( optimalScaling(imagesMRIReco[:,:,1],imagesMRIReco[:,:,r]) 
+                                  - imagesMRIReco[:,:,1], 
+             clim=(-0.1*m,0.1*m), c=:viridis, 
+             ticks=nothing, colorbar=nothing, 
+             annotations = 
+                (5,25, Plots.text((r==1) ? "Diff MRIReco.jl" : "", :white, :left)) ) )
+  end
+  
+  plDiff = Any[]
+  for r = 1:rf
+    push!(plDiff, heatmap( imagesMRIReco[:,:,r] - imagesBart[:,:,r], 
+             clim=(-0.1*m,0.1*m), c=:viridis, 
+             ticks=nothing, colorbar=nothing, 
+             annotations = 
+                (5,25, Plots.text((r==1) ? "MRIReco.jl-BART" : "", :white, :left)) ) )
+  end
+  
+  p_ = plot(plBART..., plBARTDiff..., plMRIReco..., plMRIRecoDiff..., plDiff...,
+             size=(1000,1000*5/4), layout=(5,4), left_margin = 0mm, right_margin=0mm )
+ 
+  savefig(p_, "./reco/images.pdf")
+ 
+  return p_
 end
+
 
 #makeImages()
 makeTimings()

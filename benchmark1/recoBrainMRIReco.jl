@@ -61,7 +61,7 @@ params[:senseMaps] = Complex{T}.(reshape(sensitivity, N, N, 1, Nc))
 ##############################
 @info "undersampled reco"
 rf = [1,2,3,4]
-img_cg = Vector{Array{Complex{T},5}}(undef,4)
+img_cg = Array{ComplexF32,3}(undef,N,N,4)
 times = zeros(length(rf))
 params[:iterations] = 20
 params[:relTol] = 0.0
@@ -71,7 +71,7 @@ for i = 1:length(rf)
   global acqDataSub = convertUndersampledData(sample_kspace(acqData, T(rf[i]), "regular"))
   # SENSE reconstruction while monitoring error
   # run twice to take factor out precompilation effects
-  img_cg[i] = reconstruction(acqDataSub, params).data
+  img_cg[:,:,i] = reconstruction(acqDataSub, params).data
   #times[i] = @belapsed reconstruction(acqDataSub, params).data
   timesTrials = zeros(Float64,trials)
   for k in range(1,trials) #can't use belapsed... don't know why
@@ -84,21 +84,16 @@ end
 ##############
 # write output
 ##############
-mkpath("./reco/")
 
-f_times = "./reco/recoTimes_mrireco_toeplitz$(toeplitz)_oversamp$(oversamplingFactor).csv"
-f_img  = "./reco/imgCG_mrireco_toeplitz$(toeplitz)_oversamp$(oversamplingFactor).h5"
+f_times = "./reco/recoTimes.csv"
+f_img  = "./reco/images.h5"
 
 open(f_times,"a") do file
-  writedlm(file, hcat(Threads.nthreads(), transpose(times)), ',')
+  writedlm(file, hcat("MRIReco", Threads.nthreads(), toeplitz, oversamplingFactor, transpose(times)), ',')
 end
 
-if !isfile(f_img)
-  h5open(f_img, "w") do file
-    for i=1:length(rf)
-      write(file, "/rf$(rf[i])", img_cg[i][:,:,1,1,1])
-    end
-  end
+if Threads.nthreads() == 1
+  h5write(f_img, "/recoMRIReco$(toeplitz)", img_cg)
 end
 
 exit()
