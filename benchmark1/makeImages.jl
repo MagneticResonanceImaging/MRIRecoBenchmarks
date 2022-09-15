@@ -129,7 +129,7 @@ function makeImages()
 end
 
 
-#makeImages()
+makeImages()
 makeTimings()
 
 
