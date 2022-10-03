@@ -60,7 +60,7 @@ timeMRIReco = minimum(timesTrials)
 
 f_times = "./reco/recoTimes.csv"
 f_img  = "./reco/images.h5"
-nthreads = parse(Int,ENV["OMP_NUM_THREADS"]);
+nthreads = parse(Int,get(ENV,"OMP_NUM_THREADS","1")) 
 
 open(f_times,"a") do file
   writedlm(file, hcat("BART", nthreads, timeBART), ',')

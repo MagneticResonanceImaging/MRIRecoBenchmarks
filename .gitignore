@@ -1,0 +1,8 @@
+*.h5
+benchmark1/data/
+benchmark1/reco/
+benchmark2/data/
+benchmark2/reco/
+benchmark3/data/
+benchmark3/reco/
+

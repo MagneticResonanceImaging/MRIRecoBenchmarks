@@ -1,7 +1,7 @@
 
 
 threads = [1,2,4,8] #  [1,4,8,12]
-trials = 3
+trials = 1
 
 
 f_times = "./reco/recoTimes.csv"

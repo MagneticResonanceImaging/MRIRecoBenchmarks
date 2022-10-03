@@ -35,7 +35,7 @@ function makeTimings()
 
   p = plot(threads, df[df.Lib .== "BART", :time],  #ylims=(0.0,1.2),
               lw=lw, xlabel = "# Threads", ylabel = "Time [s]", label="BART",
-              legend = :topright,  
+              legend = :topright,  yaxis= :log,
               shape=shape[1], ls=ls[1], 
               c=colors[1], msc=colors[1], mc=colors[1], ms=4, msw=2,
               size=(600,400))
@@ -60,11 +60,11 @@ function makeImages()
   sensitivityBART = reverse(abs.(h5read(f_img, "/sensitivityBART")),dims=1)
   sensitivityMRIReco = reverse(abs.(h5read(f_img, "/sensitivityMRIReco")), dims=1)
 
-  #imFully[:,:,:] ./= maximum(imFully[:,:,:])
-  #sensitivityBART[:,:,:] .= optimalScaling(imFully[:,:,:], sensitivityBART[:,:,:])
-  #sensitivityMRIReco[:,:,:] .= optimalScaling(imFully[:,:,:], sensitivityMRIReco[:,:,:])
+  sensitivity./= maximum(sensitivity)
+  sensitivityBART .= optimalScaling(sensitivity, sensitivityBART)
+  sensitivityMRIReco .= optimalScaling(sensitivity, sensitivityMRIReco)
 
-  m = maximum(sensitivity)
+  m = 1
   slice = 64
   R = size(sensitivity,4)
 
@@ -72,8 +72,8 @@ function makeImages()
   for r = 1:R
     push!(plTruth, heatmap( sensitivity[:,:,slice,r], clim=(0,m), c=:viridis, 
              ticks=nothing, colorbar=nothing, 
-             title="coil = $R", annotations = 
-                (5,25, Plots.text((r==1) ? "BART" : "", :white, :left)) ) )
+             title="coil = $r", annotations = 
+                (5,25, Plots.text((r==1) ? "Truth" : "", :white, :left)) ) )
   end
 
   plBART = Any[]
