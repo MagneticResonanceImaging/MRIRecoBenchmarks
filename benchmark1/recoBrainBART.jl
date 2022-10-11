@@ -7,7 +7,7 @@ BenchmarkTools.DEFAULT_PARAMETERS.seconds = 10000
 BenchmarkTools.DEFAULT_PARAMETERS.samples = trials
 
 
-filename = "./data/rawdata_brain_radial_96proj_12ch.h5"
+filename = @__DIR__() * "/data/rawdata_brain_radial_96proj_12ch.h5"
 
 rawdata = permutedims(h5read(filename, "rawdata"),[4,3,2,1]); # bart convention
 traj = permutedims(h5read(filename, "trajectory"),[3,2,1]);
@@ -18,7 +18,7 @@ _,nFE,nSpokes,nCh = size(rawdata);
 
 ## Demo: NUFFT reconstruction with BART
 
-f_sensitivity  = "./data/sensitivitiesBART.h5"
+f_sensitivity  = @__DIR__() * "/data/sensitivitiesBART.h5"
 
 if !isfile(f_sensitivity)
   @info "Espirit"
@@ -66,8 +66,8 @@ end
 # write output
 ##############
 
-f_times = "./reco/recoTimes.csv"
-f_img  = "./reco/images.h5"
+f_times = @__DIR__() * "/reco/recoTimes.csv"
+f_img  = @__DIR__() * "/reco/images.h5"
 
 nthreads = parse(Int,ENV["OMP_NUM_THREADS"]);
 open(f_times,"a") do file

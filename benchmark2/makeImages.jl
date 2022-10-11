@@ -16,7 +16,7 @@ end
 
 
 function makeTimings()
-  f_times = "./reco/recoTimes.csv"
+  f_times = @__DIR__() * "/reco/recoTimes.csv"
   header = ["Lib", "threads", "time"]
   data = readdlm(f_times, ',')
   df = DataFrame(data, vec(header))
@@ -45,7 +45,7 @@ function makeTimings()
               c=colors[2], msc=colors[2], mc=colors[2], ms=4, msw=2)
               
              
-  savefig(p, "./reco/timings.pdf")
+  savefig(p, @__DIR__() * "/reco/timings.svg")
  
   return p
   
@@ -54,7 +54,7 @@ end
 
 function makeImages()
 
-  f_img  = "./reco/images.h5"
+  f_img  = @__DIR__() * "/reco/images.h5"
   
   imFully = reverse(abs.(h5read(f_img, "/imFully")),dims=1)
   imagesBart = reverse(abs.(h5read(f_img, "/recoBART")),dims=1)
@@ -83,7 +83,7 @@ function makeImages()
   p_ = plot(plFully, plBART, plMRIReco,
              size=(900,300), layout=(1,3), left_margin = 0mm, right_margin=0mm )
  
-  savefig(p_, "./reco/images.pdf")
+  savefig(p_, @__DIR__() * "/reco/images.svg")
  
   return p_
 end

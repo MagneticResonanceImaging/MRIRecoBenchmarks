@@ -1,5 +1,6 @@
-using HDF5, MRIReco, BartIO, DelimitedFiles, BenchmarkTools, ProfileView
+using HDF5, BartIO, DelimitedFiles, BenchmarkTools, ProfileView
 using ImageQualityIndexes:assess_ssim
+using MRIReco, MRISampling, MRICoilSensitivities, ImageUtils
 
 bart = wrapper_bart(get(ENV,"TOOLBOX_PATH","/opt/software/bart-0.7.00"))
 trials = parse(Int,get(ENV,"NUM_TRIALS","1"))
@@ -24,7 +25,7 @@ kbart_u = kbart .* mask;
 ################################
 
 
-f_sensitivity  = "./data/sensitivities.h5"
+f_sensitivity  = @__DIR__() * "/data/sensitivities.h5"
 
 if !isfile(f_sensitivity)
   @info "ecalib"
@@ -58,8 +59,7 @@ ssim_bart = round(assess_ssim(abs.(imBART[:,:,80]),abs.(imFully[:,:,80])),digits
 
 tr = MRIBase.CartesianTrajectory3D(T, N, N, numSlices=N, TE=T(0), AQ=T(0))
 kdata_j = [reshape(Complex{T}.(kbart),:,NCh) for i=1:1, j=1:1, k=1:1]
-acq = AcquisitionData(tr, kdata_j)
-acq.encodingSize = [N,N,N]
+acq = AcquisitionData(tr, kdata_j, encodingSize=(N,N,N))
 
 # Do we need this ????
 #params = Dict{Symbol, Any}()
@@ -80,7 +80,6 @@ acqCS.kdata[1,1,1] = acqCS.kdata[1,1,1][subsampleInd,:]
 
 params = Dict{Symbol, Any}()
 params[:reco] = "multiCoil"
-params[:reconSize] = tuple(acqCS.encodingSize...)
 params[:senseMaps] = Complex{T}.(sensitivity);
 
 params[:solver] = "fista"
@@ -108,8 +107,8 @@ timeMRIReco = minimum(timesTrials)
 # write output
 ##############
 
-f_times = "./reco/recoTimes.csv"
-f_img  = "./reco/images.h5"
+f_times = @__DIR__() * "/reco/recoTimes.csv"
+f_img  = @__DIR__() * "/reco/images.h5"
 nthreads = parse(Int,ENV["OMP_NUM_THREADS"]);
 
 open(f_times,"a") do file

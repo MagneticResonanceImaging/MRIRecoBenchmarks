@@ -1,11 +1,15 @@
-## Benchmark 3
+## Benchmark 3 -  ESPIRiT 
 
-In order to run this benchmark you first need to install the following Julia packages:
- MRIReco, HDF5, MRIReco, DelimitedFiles, BenchmarkTools, ProfileView, BartIO, ImageQualityIndexes
- 
-All can be installe by adding them in the Pkg mode of Julia. 
-Just the last package is not registered and there needs
-```
-add https://github.com/JakobAsslaender/BartIO.jl
-```
-BART needs to be installed and the `runBenchmark.jl` script the `TOOLBOX_PATH` needs to be adapted.
+The third benchmark runs [ESPIRiT](https://doi.org/10.1002/mrm.24751), a state of the art algorithm for determining coil sensitivities in image space. 
+
+## Reconstruction Results
+
+An accuracy comparison is provided in the following figure.
+
+![Reconstruction Results](reco/images.svg?raw=true "Reconstruction Results")
+
+## Benchmark Results
+
+Benchmark results are given in the following figure.
+
+![Benchmark Results](reco/timings.svg?raw=true "Benchmark Results")

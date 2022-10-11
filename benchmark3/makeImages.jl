@@ -16,7 +16,7 @@ end
 
 
 function makeTimings()
-  f_times = "./reco/recoTimes.csv"
+  f_times = @__DIR__() * "/reco/recoTimes.csv"
   header = ["Lib", "threads", "time"]
   data = readdlm(f_times, ',')
   df = DataFrame(data, vec(header))
@@ -35,7 +35,7 @@ function makeTimings()
 
   p = plot(threads, df[df.Lib .== "BART", :time],  #ylims=(0.0,1.2),
               lw=lw, xlabel = "# Threads", ylabel = "Time [s]", label="BART",
-              legend = :topright,  yaxis= :log,
+              legend = :topright,  #yaxis = :log,
               shape=shape[1], ls=ls[1], 
               c=colors[1], msc=colors[1], mc=colors[1], ms=4, msw=2,
               size=(600,400))
@@ -45,7 +45,7 @@ function makeTimings()
               c=colors[2], msc=colors[2], mc=colors[2], ms=4, msw=2)
               
              
-  savefig(p, "./reco/timings.pdf")
+  savefig(p, @__DIR__() * "/reco/timings.svg")
  
   return p
   
@@ -54,7 +54,7 @@ end
 
 function makeImages()
 
-  f_img  = "./reco/images.h5"
+  f_img  = @__DIR__() * "/reco/images.h5"
   
   sensitivity = reverse(abs.(h5read(f_img, "/sensitivity")),dims=1)
   sensitivityBART = reverse(abs.(h5read(f_img, "/sensitivityBART")),dims=1)
@@ -96,7 +96,7 @@ function makeImages()
   p_ = plot(plTruth..., plBART..., plMRIReco...,
              size=(900,300), layout=(3,R), left_margin = 0mm, right_margin=0mm )
  
-  savefig(p_, "./reco/images.pdf")
+  savefig(p_, @__DIR__() * "/reco/images.svg")
  
   return p_
 end

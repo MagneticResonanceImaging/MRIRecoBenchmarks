@@ -1,10 +1,11 @@
-using HDF5, MRIReco, DelimitedFiles, BenchmarkTools, ProfileView
+using HDF5, DelimitedFiles, BenchmarkTools, ProfileView
+using MRIReco, MRISampling, MRICoilSensitivities, ImageUtils
 
 trials = parse(Int,get(ENV,"NUM_TRIALS","3"))
 BenchmarkTools.DEFAULT_PARAMETERS.seconds = 10000
 BenchmarkTools.DEFAULT_PARAMETERS.samples = trials
 
-filename = "./data/rawdata_brain_radial_96proj_12ch.h5"
+filename = @__DIR__() * "/data/rawdata_brain_radial_96proj_12ch.h5"
 data = permutedims(h5read(filename, "rawdata"),[3,2,1,4])
 traj = permutedims(h5read(filename, "trajectory"),[3,2,1])
 N = 300
@@ -21,14 +22,14 @@ oversamplingFactor = parse(Float64,get(ENV,"OVERSAMPLING","1.25"))
 tr = Trajectory(T.(reshape(traj[1:2,:,:],2,:) ./ N), 96, 512, circular=false)
 dat = Array{Array{Complex{T},2},3}(undef,1,1,1)
 dat[1,1,1] = 1.e8.*reshape(data,:,12)
-acqData = AcquisitionData(tr, dat, encodingSize=[N,N,1])
+acqData = AcquisitionData(tr, dat, encodingSize=(N,N))
 
 ################################
 # generate coil sensitivity maps
 ################################
 
 
-f_sensitivity  = "./data/sensitivitiesMRIReco.h5"
+f_sensitivity  = @__DIR__() * "/data/sensitivitiesMRIReco.h5"
 
 if !isfile(f_sensitivity)
   @info "Espirit"
@@ -45,7 +46,6 @@ end
 @info "reference reco"
 params = Dict{Symbol, Any}()
 params[:reco] = "multiCoil"
-params[:reconSize] = (N,N)
 params[:regularization] = "L2"
 params[:λ] = T(1.e-2)
 params[:iterations] = 100
@@ -85,8 +85,8 @@ end
 # write output
 ##############
 
-f_times = "./reco/recoTimes.csv"
-f_img  = "./reco/images.h5"
+f_times = @__DIR__() * "/reco/recoTimes.csv"
+f_img  = @__DIR__() * "/reco/images.h5"
 
 open(f_times,"a") do file
   writedlm(file, hcat("MRIReco", Threads.nthreads(), toeplitz, oversamplingFactor, transpose(times)), ',')

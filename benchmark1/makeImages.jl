@@ -14,7 +14,7 @@ function optimalScaling(I,Ireco)
 end
 
 function makeTimings()
-  f_times = "./reco/recoTimes.csv"
+  f_times = @__DIR__() * "/reco/recoTimes.csv"
   header = ["Lib", "threads", "toeplitz", "oversampling", "r1", "r2", "r3", "r4"]
   data = readdlm(f_times, ',')
   df = DataFrame(data, vec(header))
@@ -55,7 +55,7 @@ function makeTimings()
   
   p_ = plot(pl..., size=(600,300), layout=(1,2) )
              
-  savefig(p_, "./reco/timings.pdf")
+  savefig(p_, @__DIR__() * "/reco/timings.svg")
  
   return p_
   
@@ -64,7 +64,7 @@ end
 
 function makeImages()
 
-  f_img  = "./reco/images.h5"
+  f_img  = @__DIR__() * "/reco/images.h5"
   imagesBart = reverse(abs.(h5read(f_img, "/recoBART")),dims=1)
   imagesMRIReco = reverse(abs.(h5read(f_img, "/recoMRIReco0")), dims=1)
   rf = size(imagesBart,3)
@@ -123,7 +123,7 @@ function makeImages()
   p_ = plot(plBART..., plBARTDiff..., plMRIReco..., plMRIRecoDiff..., plDiff...,
              size=(1000,1000*5/4), layout=(5,4), left_margin = 0mm, right_margin=0mm )
  
-  savefig(p_, "./reco/images.pdf")
+  savefig(p_, @__DIR__() * "/reco/images.svg")
  
   return p_
 end

@@ -1,5 +1,6 @@
-using HDF5, MRIReco, BartIO, DelimitedFiles, BenchmarkTools, ProfileView
+using HDF5, BartIO, DelimitedFiles, BenchmarkTools, ProfileView
 using ImageQualityIndexes:assess_ssim
+using MRIReco, MRISampling, MRICoilSensitivities, ImageUtils
 
 bart = wrapper_bart(get(ENV,"TOOLBOX_PATH","/opt/software/bart-0.7.00"))
 trials = parse(Int,get(ENV,"NUM_TRIALS","1"))
@@ -44,10 +45,10 @@ function crop(A::Array{T,4}, s::NTuple{3,Int64}) where {T}
     return A[idx_x, idx_y, idx_z,:]
 end
 
-sensitivityMRIReco = espirit(crop(kbart,(24,24,24)),(128,128,128),(6,6,6),nmaps=1,eigThresh_2=0.0)
+sensitivityMRIReco = espirit(crop(kbart, (24,24,24)), (N,N,N), (6,6,6), nmaps=1, eigThresh_2=0.0)
 
 for k in range(1,trials) 
-    timesTrials[k] = @elapsed espirit(crop(kbart,(24,24,24)),(128,128,128),(6,6,6),nmaps=1,eigThresh_2=0.0)
+    timesTrials[k] = @elapsed espirit(crop(kbart, (24,24,24)), (N,N,N), (6,6,6), nmaps=1, eigThresh_2=0.0)
 end
 timeMRIReco = minimum(timesTrials)
 @info timeMRIReco
@@ -58,8 +59,8 @@ timeMRIReco = minimum(timesTrials)
 # write output
 ##############
 
-f_times = "./reco/recoTimes.csv"
-f_img  = "./reco/images.h5"
+f_times = @__DIR__() * "/reco/recoTimes.csv"
+f_img  = @__DIR__() * "/reco/images.h5"
 nthreads = parse(Int,get(ENV,"OMP_NUM_THREADS","1")) 
 
 open(f_times,"a") do file

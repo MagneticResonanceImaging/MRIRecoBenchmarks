@@ -1,11 +1,19 @@
-## Benchmark 1
+## Benchmark 1 -  SENSE Reconstruction
 
-In order to run this benchmark you first need to install the following Julia packages:
- MRIReco, HDF5, MRIReco, DelimitedFiles, BenchmarkTools, ProfileView, BartIO
- 
-All can be installed by adding them in the Pkg mode of Julia. 
-Just the last package is not registered and there needs
-```
-add https://github.com/JakobAsslaender/BartIO.jl
-```
-BART needs to be installed and the `runBenchmark.jl` script the `TOOLBOX_PATH` needs to be adapted.
+The first benchmark runs the [ISMRM Reproducibility Challenges](https://ismrm.github.io/rrsg/) considering the brain data. A complete MRIReco.jl based implementation can be found [here](https://github.com/MagneticResonanceImaging/ISMRM_RRSG).
+
+The reconstruction algorithm being run is the iterative SENSE reconstruction based on [this](https://doi.org/10.1002/mrm.1241) paper. It uses a conjugative gradient algorithm and appropriate gridding operators. The results are run for reduction factors R=1-4.
+
+The MRIReco.jl implementation runs the benchmark twice. Once with the Toeplitz optimization for the normal matrix. A second time without that optimization but with ordinary NFFT based gridding operator using accuracy parameters tuned for maximum performance.
+
+## Reconstruction Results
+
+An accuracy comparison is provided in the following figure.
+
+![Reconstruction Results](reco/images.svg?raw=true "Reconstruction Results")
+
+## Benchmark Results
+
+Benchmark results are given in the following figure.
+
+![Benchmark Results](reco/timings.svg?raw=true "Benchmark Results")
