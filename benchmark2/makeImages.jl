@@ -38,7 +38,7 @@ function makeTimings()
               legend = :topright,  
               shape=shape[1], ls=ls[1], 
               c=colors[1], msc=colors[1], mc=colors[1], ms=4, msw=2,
-              size=(600,400))
+              size=(900,400), bottom_margin=5mm, left_margin=5mm )
               
   plot!(p, threads, df[df.Lib .== "MRIReco", :time], 
               label="MRIReco", lw=lw, shape=shape[2], ls=ls[2], 

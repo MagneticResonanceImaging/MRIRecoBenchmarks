@@ -1,4 +1,5 @@
 using Plots, Measures, HDF5, LinearAlgebra, RegularizedLeastSquares, DelimitedFiles, DataFrames
+#pgfplotsx()
 
 
 function optimalScaling(I,Ireco)
@@ -53,7 +54,7 @@ function makeTimings()
   
   end
   
-  p_ = plot(pl..., size=(600,300), layout=(1,2) )
+  p_ = plot(pl..., size=(900,400), layout=(1,2), bottom_margin=5mm, left_margin=5mm  )
              
   savefig(p_, @__DIR__() * "/reco/timings.svg")
  
@@ -121,7 +122,7 @@ function makeImages()
   end
   
   p_ = plot(plBART..., plBARTDiff..., plMRIReco..., plMRIRecoDiff..., plDiff...,
-             size=(1000,1000*5/4), layout=(5,4), left_margin = 0mm, right_margin=0mm )
+             size=(900,900*5/4), layout=(5,4), left_margin = 0mm, right_margin=0mm )
  
   savefig(p_, @__DIR__() * "/reco/images.svg")
  

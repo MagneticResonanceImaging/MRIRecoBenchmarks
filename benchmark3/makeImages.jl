@@ -38,7 +38,7 @@ function makeTimings()
               legend = :topright,  #yaxis = :log,
               shape=shape[1], ls=ls[1], 
               c=colors[1], msc=colors[1], mc=colors[1], ms=4, msw=2,
-              size=(600,400))
+              size=(900,400), bottom_margin=5mm, left_margin=5mm )
               
   plot!(p, threads, df[df.Lib .== "MRIReco", :time], 
               label="MRIReco", lw=lw, shape=shape[2], ls=ls[2], 
@@ -72,7 +72,7 @@ function makeImages()
   for r = 1:R
     push!(plTruth, heatmap( sensitivity[:,:,slice,r], clim=(0,m), c=:viridis, 
              ticks=nothing, colorbar=nothing, 
-             title="coil = $r", annotations = 
+             title="coil $r", annotations = 
                 (5,25, Plots.text((r==1) ? "Truth" : "", :white, :left)) ) )
   end
 
@@ -89,12 +89,12 @@ function makeImages()
     push!(plMRIReco, heatmap( sensitivityMRIReco[:,:,slice,r,1], clim=(0,m), c=:viridis, 
              ticks=nothing, colorbar=nothing, 
              annotations = 
-                (5,25, Plots.text((r==1) ? "MRIReco.jl" : "", :white, :left)) ) )
+                (5,25, Plots.text((r==1) ? "MRIReco" : "", :white, :left)) ) )
   end
   
                 
   p_ = plot(plTruth..., plBART..., plMRIReco...,
-             size=(900,300), layout=(3,R), left_margin = 0mm, right_margin=0mm )
+             size=(900,400), layout=(3,R), left_margin = 0mm, right_margin=0mm )
  
   savefig(p_, @__DIR__() * "/reco/images.svg")
  
