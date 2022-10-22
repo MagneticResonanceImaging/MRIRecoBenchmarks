@@ -3,9 +3,7 @@ Benchmarks for MRI Reconstruction Frameworks
 
 ## Installation 
 
-**WARNING: Right now the following instructions do not work, since MRIReco is restructuring it's packages! This will be resolved soon**
-
-In order to run the benchmakr suite you need to install Julia (version 1.8 or higher) and BART (version 0.7 or higher). The you need to udjust the BART path in the file `configuration.jl`, e.g. we set it to
+In order to run the benchmark suite you need to install Julia (version 1.8 or higher) and BART (version 0.7 or higher). The you need to udjust the BART path in the file `configuration.jl`, e.g. we set it to
 ```julia
 ENV["TOOLBOX_PATH"] = "/opt/software/bart-0.7.00"
 ```
